@@ -1,9 +1,11 @@
 // src/components/TaskCard.jsx
 import React from 'react';
-import { Calendar, Tag, Trash2 } from 'react-feather';
+import ReactDOM from 'react-dom';
+import { Calendar, Tag, Trash2, Edit3 } from 'react-feather'; // Adicionado Edit3
 import { Draggable } from 'react-beautiful-dnd';
 
-export default function TaskCard({ task, onDeleteTask, onUpdateStatus, index }) {
+// Adicionada a prop onEditTask
+export default function TaskCard({ task, onDeleteTask, onUpdateStatus, onEditTask, index }) {
     if (!task) return null;
 
     let priorityClasses = 'bg-gray-500/30 text-gray-300';
@@ -20,54 +22,78 @@ export default function TaskCard({ task, onDeleteTask, onUpdateStatus, index }) 
         if (!onUpdateStatus) { console.error("TaskCard: onUpdateStatus não é uma função!"); return; }
         if (task.status === 'Pendente') onUpdateStatus('Concluído');
         else if (task.status === 'Concluído') onUpdateStatus('Pendente');
+        // Não há transição direta de "Em andamento" por clique simples aqui
     };
     const isClickableStatus = task.status === 'Pendente' || task.status === 'Concluído';
 
-    return (
-        <Draggable draggableId={task.id.toString()} index={index}>
-            {(provided, snapshot) => (
-                <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={`bg-slate-700 rounded-lg shadow-md p-3 mb-3 text-sm border border-slate-600 hover:border-slate-500 transition-shadow ${snapshot.isDragging ? 'shadow-2xl ring-2 ring-white transform scale-105' : 'shadow-md'}`}
-                >
-                    <div className="flex justify-between items-start">
-                        <h3 className="text-base font-semibold text-gray-100 mb-2 break-words w-full">{task.title}</h3>
-                        {onDeleteTask && (
-                            <button
-                                onClick={() => {
-                                    console.log('TaskCard: Botão deletar tarefa clicado para task.id:', task.id);
-                                    if (typeof onDeleteTask === 'function') {
-                                        onDeleteTask(task.id);
-                                    } else {
-                                        console.error('TaskCard: props.onDeleteTask não é uma função!');
-                                    }
-                                }}
-                                className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-slate-600 ml-2"
-                                aria-label="Deletar tarefa"
-                            > <Trash2 size={16} /> </button>
-                        )}
-                    </div>
-                    {(task.status || task.priority) && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            {task.status && (
-                                <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${statusClasses} ${isClickableStatus ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''}`}
-                                    onClick={isClickableStatus ? handleStatusClick : undefined}
-                                > {task.status} </span>
-                            )}
-                            {task.priority && (
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityClasses}`}>
-                                    Prioridade: {task.priority}
-                                </span>
-                            )}
-                        </div>
+    const cardContent = (providedDraggableSnapshot) => (
+        <div
+            ref={providedDraggableSnapshot.innerRef}
+            {...providedDraggableSnapshot.draggableProps}
+            {...providedDraggableSnapshot.dragHandleProps}
+            className={`bg-slate-700 rounded-lg shadow-md p-3 text-sm border border-slate-600 hover:border-slate-500 transition-shadow group
+                        ${providedDraggableSnapshot.isDragging ? 'shadow-2xl ring-2 ring-white transform scale-105 opacity-95' : 'shadow-md'}`}
+        >
+            <div className="flex justify-between items-start mb-1">
+                <h3 className="text-base font-semibold text-gray-100 break-words w-full pr-2">{task.title}</h3>
+                <div className="flex-shrink-0 flex items-center">
+                    {/* Botão de Editar Tarefa */}
+                    {onEditTask && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation(); // Impede que o clique no botão afete o DND se o card for clicável
+                                if (typeof onEditTask === 'function') onEditTask(task);
+                                else console.error('TaskCard: props.onEditTask não é uma função!');
+                            }}
+                            className="p-1 rounded text-gray-400 hover:text-sky-400 hover:bg-slate-600 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                            aria-label="Editar tarefa"
+                            title="Editar tarefa"
+                        >
+                            <Edit3 size={16} />
+                        </button>
                     )}
-                    {task.dueDate && (<div className="flex items-center gap-2 text-gray-400 text-xs mb-1"><Calendar size={14} /> <span>Prazo: {task.dueDate}</span></div>)}
-                    {task.tags && task.tags.length > 0 && (<div className="flex items-center gap-2 text-gray-400 text-xs"><Tag size={14} /> <span>{task.tags.join(', ')}</span></div>)}
+                    {/* Botão de Deletar Tarefa */}
+                    {onDeleteTask && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (typeof onDeleteTask === 'function') onDeleteTask(task.id);
+                                else console.error('TaskCard: props.onDeleteTask não é uma função!');
+                            }}
+                            className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-slate-600 ml-1 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                            aria-label="Deletar tarefa"
+                            title="Deletar tarefa"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    )}
+                </div>
+            </div>
+            {(task.status || task.priority) && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {task.status && (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusClasses} ${isClickableStatus ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''}`}
+                            onClick={isClickableStatus ? handleStatusClick : undefined}> {task.status} </span>
+                    )}
+                    {task.priority && (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityClasses}`}> Prioridade: {task.priority} </span>
+                    )}
                 </div>
             )}
+            {task.dueDate && (<div className="flex items-center gap-2 text-gray-400 text-xs mb-1"><Calendar size={14} /> <span>Prazo: {task.dueDate}</span></div>)}
+            {task.tags && task.tags.length > 0 && (<div className="flex items-center gap-2 text-gray-400 text-xs"><Tag size={14} /> <span>{task.tags.join(', ')}</span></div>)}
+        </div>
+    );
+
+    return (
+        <Draggable draggableId={task.id.toString()} index={index}>
+            {(provided, snapshot) => {
+                const component = cardContent(provided);
+                if (snapshot.isDragging) {
+                    return ReactDOM.createPortal(component, document.body);
+                }
+                return component;
+            }}
         </Draggable>
     );
 }
