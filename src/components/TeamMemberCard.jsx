@@ -18,14 +18,14 @@ const TeamMemberCard = ({ photoUrl, name, course, role, socialLinks }) => {
     }
 
     return (
-        <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6 flex flex-col items-center text-center transform hover:scale-105 hover:shadow-sky-500/20 transition-all duration-300 ease-in-out min-h-[360px]">
+        <div className="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6 flex flex-col items-center text-center transform hover:scale-105 hover:shadow-pink-950 transition-all duration-300 ease-in-out min-h-[360px]">
             <img
                 src={photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=475569&color=CBD5E1&size=128&font-size=0.33&bold=true`}
                 alt={`Foto de ${name}`}
                 className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-slate-600 shadow-md"
             />
             <h3 className="text-xl font-semibold text-slate-100 mb-1">{name}</h3>
-            <p className="text-sky-400 text-sm mb-1 font-medium h-10 flex items-center justify-center">{role}</p>
+            <p className="text-pink-600  text-sm mb-1 font-medium h-10 flex items-center justify-center">{role}</p>
             <p className="text-slate-400 text-xs mb-4 h-8 flex items-center justify-center">{course}</p>
 
             <div className="flex space-x-5 mt-auto pt-4 border-t border-slate-700 w-full justify-center">
